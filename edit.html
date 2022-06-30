@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<!--?xml version="1.0"?-->
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>edit.js</title>
+<script src="edit.js"></script>
+<script id="code" type="text/plain">
+/*
+    example: "Nikki likes cheese"
+*/
+
+(
+    (
+        REWRITE
+        ((READ <x>) (WRITE Nikki ))
+        ((READ <y>) (WRITE cheese))
+        (
+            (VAR <a>) (VAR <b>)
+            (READ  l <a> <b>    )
+            (WRITE <a> likes <b>)
+        )
+    )
+    
+    l <x> <y>
+)
+</script>
+<style>
+    html, body
+    {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        background-color: gray;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+</head>
+<body>
+    <div id="container" style="position: relative; width: 50%; height: 90%; overflow: auto;">
+    </div>
+    <script>
+        var options = {
+            font: "10pt monospace",
+            tabWidth: 4,
+            colorText: "rgb(208,208,208)",
+            colorTextBack: "black",
+            colorKeyword: "rgb(104,104,104)",
+            colorKeywordBack: "transparent",
+            colorBracketMatch: "white",
+            colorBracketMatchBack: "rgb(75,75,75)",
+            colorStringAndComment: "rgb(128,128,128)",
+            keywords: ["REWRITE", "READ", "WRITE", "VAR"],
+            stringsAndComments: "(\"([^\"\\\\\\n]|(\\\\.))*((\")|(\\n)|($)))|(\\/\\/((.*\\n)|(.*$)))|(\\/\\*[\\S\\s]*?((\\*\\/)|$))"
+        }
+        
+        var ed = edit ("container", options);
+
+        ed.setValue (document.getElementById("code").innerHTML);
+        
+        ed.setSelectionStart (0);
+        ed.setSelectionEnd (0);
+        ed.setFocus();
+    </script>
+</body>
+</html>
+
