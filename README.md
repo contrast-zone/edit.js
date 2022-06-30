@@ -8,4 +8,4 @@ You can test *edit.js* [here](https://contrast-zone.github.io/edit.js/edit.html)
 
 ## use instructions
 
-Just include `edit.js` from this folder in your html, that's all dependency you need. Refer to `edit.html` in this folder as a template example. Change keywords and colors as you like.
+Just include `edit.js` from this folder in your html, that's all of the dependency you need. Refer to `edit.html` in this folder as a template example. Change keywords and colors as you like.
