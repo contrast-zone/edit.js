@@ -4,8 +4,12 @@
 
 ## online test
 
-You can test *edit.js* [here](https://contrast-zone.github.io/edit.js/edit.html).
+Online in-browser test can be conducted [here](https://contrast-zone.github.io/edit.js/).
 
 ## use instructions
 
-Just include `edit.js` from this folder to your html, that's all of the dependency you need. Refer to `edit.html` in this folder as a template example. Change keywords and colors as you like.
+Just include `edit.js` from this folder to your html, that's all of the dependency you need. Refer to `index.html` in this folder as an example template. Change keywords and colors as you like.
+
+## licensing
+
+Code in this repository is licensed under [MIT license](LICENSE).
