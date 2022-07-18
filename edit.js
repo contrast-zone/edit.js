@@ -29,7 +29,7 @@ var edit = function (node, options) {
         <div id="hilights${rndid}" style="wrap: none; font: ${options.font}; white-space: pre; color: ${options.colorText}; background-color: ${options.colorTextBack}; width: inherit; height: inherit; overflow: hidden; margin: 0; padding:5px;">
         </div>
       </div>
-      <textarea id="input${rndid}" spellcheck="false" wrap="off" style="z-index: 0; width: inherit; height: inherit; border-style: none; border-radius: 0; outline: none; resize: none; box-sizing: border-box; display: block; background-color: transparent; color: transparent; caret-color: white; font: ${options.font}; margin: 0; padding:5px; position: absolute; top: 0; left: 0;">
+      <textarea class="cls${rndid}" id="input${rndid}" spellcheck="false" wrap="off" style="z-index: 0; width: inherit; height: inherit; border-style: none; border-radius: 0; outline: none; resize: none; box-sizing: border-box; display: block; background-color: transparent; color: transparent; caret-color: white; font: ${options.font}; margin: 0; padding:5px; position: absolute; top: 0; left: 0;">
       </textarea>
     </div>
     `
@@ -41,7 +41,7 @@ var edit = function (node, options) {
     
     var style=document.createElement('style');
     style.innerHTML = `
-        ::selection {
+        .cls${rndid}::selection {
             background-color: var(--selbackcolor);
             color: var(--selcolor);
         }
