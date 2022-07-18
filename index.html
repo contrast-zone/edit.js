@@ -13,12 +13,15 @@
 (
     (
         REWRITE
-        ((READ <x>) (WRITE Nikki ))
-        ((READ <y>) (WRITE cheese))
+        (RULE (READ <x>) (WRITE Nikki ))
+        (RULE (READ <y>) (WRITE cheese))
         (
             (VAR <a>) (VAR <b>)
-            (READ  l <a> <b>    )
-            (WRITE <a> likes <b>)
+            (
+                RULE
+                (READ  l <a> <b>    )
+                (WRITE <a> likes <b>)
+            )
         )
     )
     
@@ -55,7 +58,7 @@
             colorBracketMatch: "white",
             colorBracketMatchBack: "rgb(75,75,75)",
             colorStringAndComment: "rgb(128,128,128)",
-            keywords: ["REWRITE", "READ", "WRITE", "VAR"],
+            keywords: ["RULE", "REWRITE", "READ", "WRITE", "VAR"],
             stringsAndComments: "(\"([^\"\\\\\\n]|(\\\\.))*((\")|(\\n)|($)))|(\\/\\/((.*\\n)|(.*$)))|(\\/\\*[\\S\\s]*?((\\*\\/)|$))"
         }
         
