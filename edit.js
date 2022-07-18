@@ -6,6 +6,8 @@ var edit = function (node, options) {
             tabWidth: 4,
             colorText: "rgb(208,208,208)",
             colorTextBack: "black",
+            colorSelection: "white",
+            colorSelectionBack: "gray",
             colorKeyword: "rgb(104,104,104)",
             colorKeywordBack: "transparent",
             colorBracketMatch: "white",
@@ -37,6 +39,17 @@ var edit = function (node, options) {
     var backdrop = document.getElementById(`backdrop${rndid}`);
     var container = document.getElementById(`container${rndid}`);
     
+    var style=document.createElement('style');
+    style.innerHTML = `
+        ::selection {
+            background-color: var(--selbackcolor);
+            color: var(--selcolor);
+        }
+    ` 
+    document.head.appendChild(style);
+    input.style.setProperty('--selbackcolor', options.colorSelectionBack)
+    input.style.setProperty('--selcolor', options.colorSelection)
+    
     container.style.width = "inherit";
     container.style.height = "inherit";
     
@@ -63,7 +76,7 @@ var edit = function (node, options) {
         .replace(/\n$/g, '<br/>')
         .replace(/\n/g, '     <br/>');
 
-        text += "<br/><br/><br/><br/><br/> ";
+        text += "     <br/><br/><br/><br/><br/> ";
 
         hilights.innerHTML = text;
         
