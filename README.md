@@ -1,6 +1,6 @@
 # edit.js
 
-*Edit.js* is a lightweight and minimalist implementation code editor written in less than 400 Javascript lines of code. It features flexible syntax highlighting and showing bracket match.
+*Edit.js* is a lightweight and minimalist implementation code editor written in about 400 Javascript lines of code. It features flexible syntax highlighting and showing bracket match.
 
 ## online test
 

@@ -12,8 +12,8 @@ var edit = function (node, options) {
             colorKeywordBack: "transparent",
             colorBracketMatch: "white",
             colorBracketMatchBack: "rgb(75,75,75)",
-            colorStringAndComment: "rgb(128,128,128)",
-            keywords: ["RULE", "REWRITE", "READ", "WRITE", "VAR"],
+            colorStringAndComment: "rgb(104,104,104)",
+            keywords: ["\\bRULE\\b|\\bREWRITE\\b|\\bREAD\\b|\\bWRITE\\b|\\bVAR\\b"],
             stringsAndComments: "(\"([^\"\\\\\\n]|(\\\\.))*((\")|(\\n)|($)))|(\\/\\/((.*\\n)|(.*$)))|(\\/\\*[\\S\\s]*?((\\*\\/)|$))"
         }
 
@@ -100,11 +100,20 @@ var edit = function (node, options) {
 
     function hilightKeywords (text) {
         for (var i = 0; i < options.keywords.length; i++) {
-            var reg = new RegExp(`\\b${options.keywords[i]}\\b`, "g");
-            text = text.replaceAll (reg, `<span style="color: ${options.colorKeyword}; background-color: ${options.colorKeywordBack}; font-weight: bold;">${options.keywords[i]}</span>`);
+            var reg = new RegExp(options.keywords[i], "g");
+            var result;
+            var text1 = "";
+            var pos1 = 0;
+            while((result = reg.exec(text)) !== null) {
+                text1 += text.substring(pos1, result.index);
+                text1 += `<span style="color: ${options.colorKeyword}; background-color: ${options.colorKeywordBack}; font-weight: bold;">${result[0]}</span>`;
+                pos1 = result.index + result[0].length;
+            }
+            text1 += text.substring(pos1, text.length);
+            text = text1;
         }
         
-        return text;
+        return text1;
     }
     
     function prepareBraces (text, open, close) {
