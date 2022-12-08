@@ -6,9 +6,9 @@
 <title>edit.js</title>
 <script src="edit.js"></script>
 <script id="code" type="text/plain">
-/*
-    example: "Nikki likes cheese"
-*/
+//-------------------------------//
+// example: "Nikki likes cheese" //
+//-------------------------------//
 
 (
     (
@@ -46,23 +46,32 @@
     <div id="container" style="position: relative; width: 50%; height: 90%;">
     </div>
     <script>
+        function tag (str) {
+            return `((?<=\\((\\s|·)*)${str}(?=(\\s|·|\\))))`
+        }
+
         var options = {
-            font: "10pt monospace",
+            font: "1em monospace",
             tabWidth: 4,
             colorText: "rgb(208,208,208)",
             colorTextBack: "black",
             colorSelection: "white",
             colorSelectionBack: "gray",
-            colorKeyword: "rgb(104,104,104)",
+            colorKeyword: "rgb(128,128,128)",
             colorKeywordBack: "transparent",
+            colorStringAndComment: "rgb(128,128,128)",
+            colorStringAndCommentBack: "transparent",
             colorBracketMatch: "white",
-            colorBracketMatchBack: "rgb(75,75,75)",
-            colorStringAndComment: "rgb(104,104,104)",
-            keywords: ["\\bRULE\\b|\\bREWRITE\\b|\\bREAD\\b|\\bWRITE\\b|\\bVAR\\b"],
-            stringsAndComments: "(\"([^\"\\\\\\n]|(\\\\.))*((\")|(\\n)|($)))|(\\/\\/((.*\\n)|(.*$)))|(\\/\\*[\\S\\s]*?((\\*\\/)|$))"
+            colorBracketMatchBack: "rgb(80,80,80)",
+            keywords: [`${tag('RULE')}|${tag('REWRITE')}|${tag('READ')}|${tag('WRITE')}|${tag('VAR')}`],
+            stringsAndComments: "(\"([^\"\\\\\\n]|(\\\\.))*((\")|(\\n)|($)))|(\\/\\/((.*\\n)|(.*$)))",
+            // multiline comments // stringsAndComments: "(\"([^\"\\\\\\n]|(\\\\.))*((\")|(\\n)|($)))|(\\/\\/((.*\\n)|(.*$)))|(\\/\\*[\\S\\s]*?((\\*\\/)|$))"
+            hilightMatchingBraces: true,
+            spaceDots: true,
+            colorSpaceDot: "rgb(128,128,128)"
         }
-        
-        var ed = edit ("container", options);
+
+        var ed = editor.edit ("container", options);
 
         ed.setValue (document.getElementById("code").innerHTML);
         
