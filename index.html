@@ -6,26 +6,54 @@
 <title>edit.js</title>
 <script src="edit.js"></script>
 <script id="code" type="text/plain">
-//-------------------------------//
-// example: "Nikki likes cheese" //
-//-------------------------------//
+/*
+    weighting decision
+    
+     input: `{orbitsAround sun/earth/moon sun/earth/moon}`
+    output: `{weigthtsMoreThan sun/earth/moon sun/earth/moon}`
+*/
 
 (
+    RULE
     (
-        REWRITE
-        (RULE (READ <x>) (WRITE Nikki ))
-        (RULE (READ <y>) (WRITE cheese))
+        READ
+        
+        (RULE (READ) (WRITE {orbitsAround [object] [object]}))
+        
+        (RULE (READ [object]) (WRITE sun  ))
+        (RULE (READ [object]) (WRITE earth))
+        (RULE (READ [object]) (WRITE moon ))
+    )
+    (
+        CHAIN
         (
-            (VAR <a>) (VAR <b>)
+            MATCH
+            (VAR <O1> <O2>)
             (
                 RULE
-                (READ  l <a> <b>    )
-                (WRITE <a> likes <b>)
+                (READ {orbitsAround <O1> <O2>})
+                (WRITE {attractsMoreThan <O2> <O1>})
+            )
+        )
+        (
+            MATCH
+            (VAR <O1> <O2>)
+            (
+                RULE
+                (READ {attractsMoreThan <O1> <O2>})
+                (WRITE {weightsMoreThan <O1> <O2>})
             )
         )
     )
-    
-    l <x> <y>
+    (
+        WRITE
+        
+        (RULE (READ sun  ) (WRITE [object]))
+        (RULE (READ earth) (WRITE [object]))
+        (RULE (READ moon ) (WRITE [object]))
+        
+        (RULE (READ {weightsMoreThan [object] [object]}) (WRITE))
+    )
 )
 </script>
 <style>
@@ -46,32 +74,50 @@
     <div id="container" style="position: relative; width: 50%; height: 90%;">
     </div>
     <script>
-        function tag (str) {
-            return `((?<=\\((\\s|·)*)${str}(?=(\\s|·|\\))))`
+        function getRaster (quant, color1, color2) {
+            var cnv = document.createElement ("canvas");
+            var pr = Math.min (window.devicePixelRatio, 2)
+            var ps = Math.round (quant / 100 * 4 * Math.max (screen.width, 1920) / 1920);
+            
+            if (ps < pr)
+                ps = pr;
+            
+            cnv.width = ps * 2;
+            cnv.height = ps * 2;
+            var ctx = cnv.getContext('2d');
+            ctx.fillStyle = "rgb(208,208,208)";
+            ctx.fillStyle = color1;
+            ctx.fillRect (0, 0, ps, ps);
+            ctx.fillRect (ps, ps, ps, ps);
+            ctx.fillStyle = "rgb(48,48,48)";
+            ctx.fillStyle = color2;
+            ctx.fillRect (0, ps, ps, ps);
+            ctx.fillRect (ps, 0, ps, ps);
+            
+            var img = document.createElement ("img");
+            img.src = cnv.toDataURL('image/png');
+            
+            return img;
         }
+
+        var img = getRaster (75, "rgb(48,48,48)", "rgb(208,208,208)");
+        document.body.style.backgroundPosition = "center";
+        document.body.style.imageRendering = "pixelated";
+        document.body.style.backgroundImage = "url('" + img.src + "')";
 
         var options = {
-            font: "1em monospace",
+            font: "8pt monospace",
             tabWidth: 4,
+            colorCaret: "rgb(208,208,208)",
             colorText: "rgb(208,208,208)",
-            colorTextBack: "black",
-            colorSelection: "white",
-            colorSelectionBack: "gray",
-            colorKeyword: "rgb(128,128,128)",
-            colorKeywordBack: "transparent",
-            colorStringAndComment: "rgb(128,128,128)",
-            colorStringAndCommentBack: "transparent",
-            colorBracketMatch: "white",
-            colorBracketMatchBack: "rgb(80,80,80)",
-            keywords: [`${tag('RULE')}|${tag('REWRITE')}|${tag('READ')}|${tag('WRITE')}|${tag('VAR')}`],
-            stringsAndComments: "(\"([^\"\\\\\\n]|(\\\\.))*((\")|(\\n)|($)))|(\\/\\/((.*\\n)|(.*$)))",
-            // multiline comments // stringsAndComments: "(\"([^\"\\\\\\n]|(\\\\.))*((\")|(\\n)|($)))|(\\/\\/((.*\\n)|(.*$)))|(\\/\\*[\\S\\s]*?((\\*\\/)|$))"
-            hilightMatchingBraces: true,
-            spaceDots: true,
-            colorSpaceDot: "rgb(128,128,128)"
+            colorTextBack: "rgb(48,48,48)",
+            colorSelection: "rgb(48,48,48)",
+            colorSelectionBack: "rgb(208,208,208)",
+            keywords: ["\\b(CHAIN|RULE|READ|WRITE|MATCH|VAR)\\b"], //["(?<=((\\(\\0x0000(\\s)*)|(\\((\\s)*)))(?!(\\0x0000|\\())([^\\s\\(\\)])+(?=(\\s|\\(|\\)|$))"],
+            //stringsAndComments: "(/(?!\\*)(?!\\/)([^/\\\\\\n]|(\\\\.))*((/i)|(/)|(\\n)|($)))|(\"([^\"\\\\\\n]|(\\\\.))*((\")|(\\n)|($)))|(\\/\\/((.*\\n)|(.*$)))|(\\/\\*[\\S\\s]*?((\\*\\/)|$))"
+            stringsAndComments: "(\"([^\"\\\\\\n]|(\\\\.))*((\")|(\\n)|($)))|(\\/\\/((.*\\n)|(.*$)))|(\\/\\*[\\S\\s]*?((\\*\\/)|$))"
         }
-
-        var ed = editor.edit ("container", options);
+        var ed = edit ("container", options);
 
         ed.setValue (document.getElementById("code").innerHTML);
         
