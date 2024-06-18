@@ -1,6 +1,6 @@
 var edit = function (node, options) {
     "use strict";
-    if (!options)
+    if (!options) {
         var options = {
             font: "8pt monospace",
             tabWidth: 4,
@@ -9,18 +9,16 @@ var edit = function (node, options) {
             colorTextBack: "rgb(48,48,48)",
             colorSelection: "rgb(48,48,48)",
             colorSelectionBack: "rgb(208,208,208)",
-            colorBracketMatch: "rgb(48,48,48)",
-            colorBracketMatchBack: "rgb(208,208,208)",
-            keywords: ["\\b(CHAIN|RULE|READ|WRITE|MATCH|VAR)\\b"],
-            stringsAndComments: "(\"([^\"\\\\\\n]|(\\\\.))*((\")|(\\n)|($)))|(\\/\\/((.*\\n)|(.*$)))|(\\/\\*[\\S\\s]*?((\\*\\/)|$))"
+            bold: ["\\b(CHAIN|RULE|READ|WRITE|MATCH|VAR)\\b"],
+            italic: "(\"([^\"\\\\\\n]|(\\\\.))*((\")|(\\n)|($)))|(\\/\\/((.*\\n)|(.*$)))|(\\/\\*[\\S\\s]*?((\\*\\/)|$))"
         }
-
+    }
+    
     var ww, hh;
-    var rndid = Math.floor (Math.random () * 32768);
+    var rndid = Math.floor (Math.random () * 32767);
     var ed = document.getElementById(node);
 
     ed.innerHTML = 
-
     `
     <div id="container${rndid}" style="position: relative; width: inherit; height: inherit; overflow: auto;">
       <div id="backdrop${rndid}" style = "z-index: 1; width: inherit; height: inherit; overflow: hidden;">
@@ -37,12 +35,17 @@ var edit = function (node, options) {
     var backdrop = document.getElementById(`backdrop${rndid}`);
     var container = document.getElementById(`container${rndid}`);
     
+    input.oncontextmenu = function (e) {
+        return false;
+    };
+
     var style=document.createElement('style');
-    style.innerHTML = `
-        .cls${rndid}::selection {
-            background-color: var(--selbackcolor);
-            color: var(--selcolor);
-        }
+    style.innerHTML =
+    `
+    .cls${rndid}::selection {
+        background-color: var(--selbackcolor);
+        color: var(--selcolor);
+    }
     ` 
     document.head.appendChild(style);
     input.style.setProperty('--selbackcolor', options.colorSelectionBack)
@@ -54,48 +57,12 @@ var edit = function (node, options) {
     function hilightAll() {
         var text = input.value;
         
-        /*
-        var b;
-        var t = prepareBraces (text, "(", ")");
-        if (t.found) {
-            text = t.text;
-            b = 0;
-        }
-        else {
-            t = prepareBraces (text, "[", "]");
-            if (t.found) {
-                text = t.text;
-                b = 1;
-            } else {
-                t = prepareBraces (text, "{", "}");
-                if (t.found) {
-                    text = t.text;
-                    b = 2;
-                }
-            }
-        }
-        */
-
         text = text
         .replaceAll(/&/g, '&amp;')
         .replaceAll(/</g, '&lt;')
         .replaceAll(/>/g, '&gt;');
 
         text = hilightContents (text);
-
-        /*
-        if (t.found) {
-            if (b === 0) {
-                text = hilightBraces (text, "(", ")");
-            }
-            else if (b === 1) {
-                text = hilightBraces (text, "[", "]");
-            }
-            else if (b === 2) {
-                text = hilightBraces (text, "{", "}");
-            }
-        }
-        */
 
         // scroll fix
         text = text
@@ -109,76 +76,14 @@ var edit = function (node, options) {
     }
     
     function hilightContents (text) {
-        var reg = new RegExp(options.stringsAndComments, "g");
-        return hilightKeywords (text).replaceAll (reg, (str) => `<i>${str.replaceAll (/<b>|<\/b>/ig, "")}</i>`);
+        var reg = new RegExp(options.italic, "g");
+        return hilightBold (text).replaceAll (reg, (str) => `<i>${str.replaceAll (/<b>|<\/b>/ig, "")}</i>`);
         
     }
 
-    function hilightKeywords (text) {
-        var reg = new RegExp(options.keywords, "g");
+    function hilightBold (text) {
+        var reg = new RegExp(options.bold, "g");
         return text.replaceAll (reg, (str) => `<b>${str}</b>`);
-    }
-    
-    function prepareBraces (text, open, close) {
-        var st = input.selectionStart;
-        var en = input.selectionEnd;
-        var found, i1, i2;
-        
-        if (st === en) {
-            if (st === text.length || ("({[".indexOf (text.substr(st, 1)) === -1 && "}])".indexOf (text.substr(st, 1)) === -1))
-                st--;
-              
-            if (text.substr(st, 1) === open) {
-                var i = st, nb = 0;
-                do {
-                    if (text.substr(i, 1) == open)
-                        nb++;
-                    else if (text.substr(i, 1) == close)
-                        nb--;
-                
-                    i++;
-                } while (i < text.length && nb !== 0);
-
-                if (nb === 0) {
-                    found = true;
-                    i1 = st;
-                    i2 = i - 1;
-                }
-                
-            } else if (text.substr(st, 1) === close) {
-                var i = st, nb = 0;
-                do {
-                    if (text.substr(i, 1) == open)
-                        nb--;
-                    else if (text.substr(i, 1) == close)
-                        nb++;
-                  
-                    i--;
-                } while (i > -1 && nb !== 0);
-              
-                if (nb === 0) {
-                    found = true;
-                    i1 = i + 1;
-                    i2 = st;
-                }
-            }
-        }
-        
-
-        if (found) {
-            var p0 = text.substring(0, i1);
-            var p1 = text.substring(i1 + 1, i2);
-            var p2 = text.substring(i2 + 1, text.length)
-            text = p0 + `${open}\0x0000 ` + p1 + ` \0x0000${close}` + p2;
-        }
-        
-        return {text: text, found: found};
-    }
-    
-    function hilightBraces (text, open, close) {
-        return text
-        .replaceAll(`${open}\0x0000 `, `<span style="color: ${options.colorBracketMatch}; background-color: ${options.colorBracketMatchBack};">${open}</span>`)
-        .replaceAll(` \0x0000${close}`, `<span style="color: ${options.colorBracketMatch}; background-color: ${options.colorBracketMatchBack};">${close}</span>`);
     }
     
     function handleScroll () {
@@ -188,6 +93,40 @@ var edit = function (node, options) {
     
     function handleInput () {
         window.requestAnimationFrame(() => {hilightAll ()})
+    }
+
+    var lastKeyType;
+    var undoStack;
+    var redoStack;
+    
+    input.onmousedown = function(e) {
+        lastKeyType = "nav";
+    }
+    
+    function undo () {
+        if (undoStack.length > 0) {
+            var el = undoStack.pop ();
+            redoStack.push ({val: input.value, selStart: input.selectionStart, selEnd: input.selectionEnd});
+
+            input.value = el.val;
+            input.selectionStart = el.selStart;
+            input.selectionEnd = el.selEnd;
+
+            hilightAll ();
+        }
+    }
+    
+    function redo () {
+        if (redoStack.length > 0) {
+            var el = redoStack.pop ()
+            undoStack.push ({val: input.value, selStart: input.selectionStart, selEnd: input.selectionEnd});
+
+            input.value = el.val;
+            input.selectionStart = el.selStart;
+            input.selectionEnd = el.selEnd;
+
+            hilightAll ();
+        }
     }
 
     function handleKeyPress (e) {
@@ -243,6 +182,48 @@ var edit = function (node, options) {
             }
         }
         
+        var keyType;
+        if (
+            e.key === "ArrowUp" ||
+            e.key === "ArrowDown" ||
+            e.key === "ArrowLeft" ||
+            e.key === "ArrowRight" ||
+            e.key === "Home" ||
+            e.key === "End" ||
+            e.key === "PageUp" ||
+            e.key === "PageDown"
+        ) {
+            keyType = "nav";
+        }
+        else {
+            keyType = "edit";
+        }
+        
+        if (
+            (
+                lastKeyType === "nav" && keyType === "edit" &&
+                (e.key !== "Shift" && e.key !== "Control" && e.key !== "Meta")
+            ) ||
+            ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase () === "x" || e.key.toLowerCase () === "v")) ||
+            (e.shiftKey && e.key === "Insert")
+        ) {
+            redoStack = [];
+            undoStack.push ({val: input.value, selStart: input.selectionStart, selEnd: input.selectionEnd});
+            if (undoStack.length > 500) {
+                undoStack.shift ();
+            }
+            if (
+                ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase () === "x" || e.key.toLowerCase () === "v")) ||
+                (e.shiftKey && e.key === "Insert")
+            ) {
+                keyType = "nav";
+            }
+        }
+        else if (lastKeyType === "edit" && keyType === "nav") {
+        }
+        
+        lastKeyType = keyType;
+
         if (e.key === "Enter") {
             e.preventDefault ();
             
@@ -265,19 +246,19 @@ var edit = function (node, options) {
                     return;
                 }
             }
-            
-        } else if (e.key === "Tab") {
+        }
+        else if (e.key === "Tab") {
             e.preventDefault ();
             
             if (input.selectionStart == input.selectionEnd) {
                 if (e.shiftKey) {
                     tabLeft (input.selectionStart);
-                    
-                } else {
-                    tabRight (input.selectionStart);
-                    
                 }
-            } else {
+                else {
+                    tabRight (input.selectionStart);
+                }
+            }
+            else {
                 var lineStarts = [];
                 
                 for (i = input.selectionStart - 1; i >= -1; i--)
@@ -324,8 +305,8 @@ var edit = function (node, options) {
                     
                     input.selectionStart = lineStarts[0];
                     input.selectionEnd = lineStarts[0] + ins.length;
-                
-                } else {
+                }
+                else {
                     var ins = "";
                     for (var i = 0; i < lineStarts.length - 1; i++) {
                         input.selectionStart = lineStarts[i];
@@ -342,7 +323,8 @@ var edit = function (node, options) {
                     input.selectionEnd = lineStarts[0] + ins.length;
                 }
             }
-        } else if (e.key === "Home") {
+        }
+        else if (e.key === "Home") {
             if (input.selectionStart === 0 || input.value.charAt (input.selectionStart - 1) === "\n") {
                 e.preventDefault ();
                 var i = input.selectionStart;
@@ -353,27 +335,10 @@ var edit = function (node, options) {
                 if (!e.shiftKey) {
                     input.selectionStart = i;
                     input.selectionEnd = i;
-                
-                } else {
+                }
+                else {
                     input.selectionStart = i;
                 }
-            } else {
-                /*
-                e.preventDefault ();
-
-                var i = input.selectionStart;
-                while (i >= 0 && "\n".indexOf (input.value.charAt (i - 1)) === -1) {
-                    i--
-                }
-
-                if (!e.shiftKey) {
-                    input.selectionStart = i;
-                    input.selectionEnd = i;
-                
-                } else {
-                    input.selectionStart = i;
-                }
-                */
             }
         } else if (e.key === "End") {
             if (input.selectionEnd === input.value.length || input.value.charAt (input.selectionEnd) === "\n") {
@@ -391,11 +356,19 @@ var edit = function (node, options) {
                     input.selectionEnd = i;
                 }
             }
+        } 
+        else if (e.key.toLowerCase () === "z" && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault ()
+            if (e.shiftKey) {
+                redo ();
+            }
+            else {
+                undo ();
+            }
         }
     }
 
     function handleResize () {
-        
         container.style.width = "0px";
         container.style.height = "0px";
         
@@ -409,23 +382,9 @@ var edit = function (node, options) {
         
     }
     
-    var tohlghtbrc = null;
-    function handleSelectionChange () {
-        const activeElement = document.activeElement
-        if (activeElement && activeElement.id === `input${rndid}`) {
-            //clearTimeout (tohlghtbrc);
-            //tohlghtbrc = setTimeout (hilightAll, 500);
-        }
-    }
-    
-    document.addEventListener('selectionchange', handleSelectionChange);
-
     input.addEventListener('input', handleInput);
-
     input.addEventListener('keydown', handleKeyPress);
-
     input.addEventListener('scroll', handleScroll);
-
     ed.addEventListener('resize', handleResize);
     window.addEventListener('resize', handleResize);
 
@@ -435,6 +394,9 @@ var edit = function (node, options) {
     }, 0);
             
     input.value = "";
+    undoStack = [];
+    redoStack = [];
+    lastKeyType = "nav";
 
     return {
         getValue: function () {
@@ -442,6 +404,9 @@ var edit = function (node, options) {
         },
         setValue: function (value) {
             input.value = value;
+            undoStack = [];
+            redoStack = [];
+            lastKeyType = "nav";
             hilightAll ();
         },
         getSelectionStart () {
