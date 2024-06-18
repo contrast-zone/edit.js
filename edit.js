@@ -191,7 +191,8 @@ var edit = function (node, options) {
             e.key === "Home" ||
             e.key === "End" ||
             e.key === "PageUp" ||
-            e.key === "PageDown"
+            e.key === "PageDown" ||
+            (e.ctrlKey && e.key.toLowerCase () === "z")
         ) {
             keyType = "nav";
         }
