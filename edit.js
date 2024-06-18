@@ -182,48 +182,48 @@ var edit = function (node, options) {
             }
         }
         
-        var keyType;
-        if (
-            e.key === "ArrowUp" ||
-            e.key === "ArrowDown" ||
-            e.key === "ArrowLeft" ||
-            e.key === "ArrowRight" ||
-            e.key === "Home" ||
-            e.key === "End" ||
-            e.key === "PageUp" ||
-            e.key === "PageDown" ||
-            (e.ctrlKey && e.key.toLowerCase () === "z")
-        ) {
-            keyType = "nav";
-        }
-        else {
-            keyType = "edit";
-        }
-        
-        if (
-            (
-                lastKeyType === "nav" && keyType === "edit" &&
-                (e.key !== "Shift" && e.key !== "Control" && e.key !== "Meta")
-            ) ||
-            ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase () === "x" || e.key.toLowerCase () === "v")) ||
-            (e.shiftKey && e.key === "Insert")
-        ) {
-            redoStack = [];
-            undoStack.push ({val: input.value, selStart: input.selectionStart, selEnd: input.selectionEnd});
-            if (undoStack.length > 500) {
-                undoStack.shift ();
-            }
+        if (e.key !== "Shift" && e.key !== "Control" && e.key !== "Meta") {
+            var keyType;
             if (
-                ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase () === "x" || e.key.toLowerCase () === "v")) ||
-                (e.shiftKey && e.key === "Insert")
+                e.key === "ArrowUp" ||
+                e.key === "ArrowDown" ||
+                e.key === "ArrowLeft" ||
+                e.key === "ArrowRight" ||
+                e.key === "Home" ||
+                e.key === "End" ||
+                e.key === "PageUp" ||
+                e.key === "PageDown" ||
+                (e.ctrlKey && e.key.toLowerCase () === "z") ||
+                (e.ctrlKey && e.key.toLowerCase () === "c")
             ) {
                 keyType = "nav";
             }
+            else {
+                keyType = "edit";
+            }
+            
+            if (
+                (lastKeyType === "nav" && keyType === "edit") ||
+                ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase () === "x" || e.key.toLowerCase () === "v")) ||
+                (e.shiftKey && e.key === "Insert")
+            ) {
+                redoStack = [];
+                undoStack.push ({val: input.value, selStart: input.selectionStart, selEnd: input.selectionEnd});
+                if (undoStack.length > 500) {
+                    undoStack.shift ();
+                }
+                if (
+                    ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase () === "x" || e.key.toLowerCase () === "v")) ||
+                    (e.shiftKey && e.key === "Insert")
+                ) {
+                    keyType = "nav";
+                }
+            }
+            else if (lastKeyType === "edit" && keyType === "nav") {
+            }
+            
+            lastKeyType = keyType;
         }
-        else if (lastKeyType === "edit" && keyType === "nav") {
-        }
-        
-        lastKeyType = keyType;
 
         if (e.key === "Enter") {
             e.preventDefault ();
