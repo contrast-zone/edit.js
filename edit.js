@@ -106,27 +106,36 @@ var edit = function (node, options) {
     function undo () {
         if (undoStack.length > 0) {
             var el = undoStack.pop ();
-            redoStack.push ({val: input.value, selStart: input.selectionStart, selEnd: input.selectionEnd});
+            redoStack.push ({val: input.value, selStart: el.selStart, selEnd: el.selEnd});
 
             input.value = el.val;
             input.selectionStart = el.selStart;
-            input.selectionEnd = el.selEnd;
+            input.selectionEnd = el.selStart;
 
             hilightAll ();
+            input.blur();
+            input.focus();
         }
     }
     
     function redo () {
         if (redoStack.length > 0) {
             var el = redoStack.pop ()
-            undoStack.push ({val: input.value, selStart: input.selectionStart, selEnd: input.selectionEnd});
+            undoStack.push ({val: input.value, selStart: el.selStart, selEnd: el.selEnd});
 
             input.value = el.val;
+            input.selectionStart = el.selEnd + 1;
+            input.blur();
+            input.focus();
             input.selectionStart = el.selStart;
-            input.selectionEnd = el.selEnd;
+            input.selectionEnd = el.selEnd + 1;
 
             hilightAll ();
         }
+    }
+    
+    input.onpaste = function (e) {
+        undoStack[undoStack.length - 1].selEnd = input.selectionStart + e.clipboardData.getData("text/plain").length - 1;
     }
 
     function handleKeyPress (e) {
@@ -208,7 +217,7 @@ var edit = function (node, options) {
                 (e.shiftKey && e.key === "Insert")
             ) {
                 redoStack = [];
-                undoStack.push ({val: input.value, selStart: input.selectionStart, selEnd: input.selectionEnd});
+                undoStack.push ({val: input.value, selStart: input.selectionStart, selEnd: input.selectionStart});
                 if (undoStack.length > 500) {
                     undoStack.shift ();
                 }
@@ -219,7 +228,8 @@ var edit = function (node, options) {
                     keyType = "nav";
                 }
             }
-            else if (lastKeyType === "edit" && keyType === "nav") {
+            else if (keyType === "edit") {
+                undoStack[undoStack.length - 1].selEnd = input.selectionEnd;
             }
             
             lastKeyType = keyType;
@@ -306,6 +316,9 @@ var edit = function (node, options) {
                     
                     input.selectionStart = lineStarts[0];
                     input.selectionEnd = lineStarts[0] + ins.length;
+
+                    if (undoStack.length > 0)
+                        undoStack[undoStack.length - 1].selEnd = input.selectionEnd - 1;
                 }
                 else {
                     var ins = "";
@@ -322,39 +335,58 @@ var edit = function (node, options) {
                     
                     input.selectionStart = lineStarts[0];
                     input.selectionEnd = lineStarts[0] + ins.length;
+
+                    if (undoStack.length > 0)
+                        undoStack[undoStack.length - 1].selEnd = input.selectionEnd - 1;
                 }
             }
         }
         else if (e.key === "Home") {
-            if (input.selectionStart === 0 || input.value.charAt (input.selectionStart - 1) === "\n") {
-                e.preventDefault ();
-                var i = input.selectionStart;
-                while (i < input.value.length && " \t\v".indexOf (input.value.charAt (i)) > -1) {
-                    i++
-                }
-                
-                if (!e.shiftKey) {
-                    input.selectionStart = i;
-                    input.selectionEnd = i;
-                }
-                else {
-                    input.selectionStart = i;
+            if (e.ctrlKey) {
+                input.selectionStart = 0;
+                input.selectionEnd = 0;
+                input.blur();
+                input.focus();
+            }
+            else {
+                if (input.selectionStart === 0 || input.value.charAt (input.selectionStart - 1) === "\n") {
+                    e.preventDefault ();
+                    var i = input.selectionStart;
+                    while (i < input.value.length && " \t\v".indexOf (input.value.charAt (i)) > -1) {
+                        i++
+                    }
+                    
+                    if (!e.shiftKey) {
+                        input.selectionStart = i;
+                        input.selectionEnd = i;
+                    }
+                    else {
+                        input.selectionStart = i;
+                    }
                 }
             }
         } else if (e.key === "End") {
-            if (input.selectionEnd === input.value.length || input.value.charAt (input.selectionEnd) === "\n") {
-                e.preventDefault ();
-                var i = input.selectionEnd;
-                while (i >= 0 && " \t\v".indexOf (input.value.charAt (i - 1)) > -1) {
-                    i--
-                }
-                
-                if (!e.shiftKey) {
-                    input.selectionStart = i;
-                    input.selectionEnd = i;
-                }
-                else {
-                    input.selectionEnd = i;
+            if (e.ctrlKey) {
+                input.selectionStart = input.value.length;
+                input.selectionEnd = input.value.length;
+                input.blur();
+                input.focus();
+            }
+            else {
+                if (input.selectionEnd === input.value.length || input.value.charAt (input.selectionEnd) === "\n") {
+                    e.preventDefault ();
+                    var i = input.selectionEnd;
+                    while (i >= 0 && " \t\v".indexOf (input.value.charAt (i - 1)) > -1) {
+                        i--
+                    }
+                    
+                    if (!e.shiftKey) {
+                        input.selectionStart = i;
+                        input.selectionEnd = i;
+                    }
+                    else {
+                        input.selectionEnd = i;
+                    }
                 }
             }
         } 
