@@ -14,45 +14,39 @@
 */
 
 (
-    RULE
+    RL
     (
-        READ
+        RD
         
-        (RULE (READ) (WRITE {orbitsAround [object] [object]}))
+        (RL (RD) (WT {orbitsAround [object] [object]}))
         
-        (RULE (READ [object]) (WRITE sun  ))
-        (RULE (READ [object]) (WRITE earth))
-        (RULE (READ [object]) (WRITE moon ))
+        (RL (RD [object]) (WT sun  ))
+        (RL (RD [object]) (WT earth))
+        (RL (RD [object]) (WT moon ))
     )
     (
-        CHAIN
+        CN
         (
-            MATCH
-            (VAR <O1> <O2>)
-            (
-                RULE
-                (READ {orbitsAround <O1> <O2>})
-                (WRITE {attractsMoreThan <O2> <O1>})
-            )
+            RL
+            (VR <O1> <O2>)
+            (RD {orbitsAround <O1> <O2>})
+            (WT {attractsMoreThan <O2> <O1>})
         )
         (
-            MATCH
-            (VAR <O1> <O2>)
-            (
-                RULE
-                (READ {attractsMoreThan <O1> <O2>})
-                (WRITE {weightsMoreThan <O1> <O2>})
-            )
+            RL
+            (VR <O1> <O2>)
+            (RD {attractsMoreThan <O1> <O2>})
+            (WT {weightsMoreThan <O1> <O2>})
         )
     )
     (
-        WRITE
+        WT
         
-        (RULE (READ sun  ) (WRITE [object]))
-        (RULE (READ earth) (WRITE [object]))
-        (RULE (READ moon ) (WRITE [object]))
+        (RL (RD sun  ) (WT [object]))
+        (RL (RD earth) (WT [object]))
+        (RL (RD moon ) (WT [object]))
         
-        (RULE (READ {weightsMoreThan [object] [object]}) (WRITE))
+        (RL (RD {weightsMoreThan [object] [object]}) (WT))
     )
 )
 </script>
@@ -113,7 +107,11 @@
             colorTextBack: "rgb(48,48,48)",
             colorSelection: "rgb(48,48,48)",
             colorSelectionBack: "rgb(208,208,208)",
-            bold: ["\\b(CHAIN|RULE|READ|WRITE|MATCH|VAR)\\b"], //["(?<=((\\(\\0x0000(\\s)*)|(\\((\\s)*)))(?!(\\0x0000|\\())([^\\s\\(\\)])+(?=(\\s|\\(|\\)|$))"],
+            colorBracketMatch: "rgb(48,48,48)",
+            colorBracketMatchBack: "rgb(208,208,208)",
+            hilightMatchingBrackets: true,
+            enableUndo: true,
+            bold: "\\b(CN|RL|RD|WT|VR)\\b", //["(?<=((\\(\\0x0000(\\s)*)|(\\((\\s)*)))(?!(\\0x0000|\\())([^\\s\\(\\)])+(?=(\\s|\\(|\\)|$))"],
             italic: "(\"([^\"\\\\\\n]|(\\\\.))*((\")|(\\n)|($)))|(\\/\\/((.*\\n)|(.*$)))|(\\/\\*[\\S\\s]*?((\\*\\/)|$))"
         }
         var ed = edit ("container", options);

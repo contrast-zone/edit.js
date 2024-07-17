@@ -9,7 +9,11 @@ var edit = function (node, options) {
             colorTextBack: "rgb(48,48,48)",
             colorSelection: "rgb(48,48,48)",
             colorSelectionBack: "rgb(208,208,208)",
-            bold: ["\\b(CHAIN|RULE|READ|WRITE|MATCH|VAR)\\b"],
+            colorBracketMatch: "rgb(48,48,48)",
+            colorBracketMatchBack: "rgb(208,208,208)",
+            matchBrackets: true,
+            enableUndo: true,
+            bold: "\\b(CHAIN|RULE|READ|WRITE|MATCH|VAR)\\b",
             italic: "(\"([^\"\\\\\\n]|(\\\\.))*((\")|(\\n)|($)))|(\\/\\/((.*\\n)|(.*$)))|(\\/\\*[\\S\\s]*?((\\*\\/)|$))"
         }
     }
@@ -57,12 +61,48 @@ var edit = function (node, options) {
     function hilightAll() {
         var text = input.value;
         
+        if (options.hilightMatchingBrackets) {
+            var b;
+            var t = prepareBraces (text, "(", ")");
+            if (t.found) {
+                text = t.text;
+                b = 0;
+            }
+            else {
+                t = prepareBraces (text, "[", "]");
+                if (t.found) {
+                    text = t.text;
+                    b = 1;
+                } else {
+                    t = prepareBraces (text, "{", "}");
+                    if (t.found) {
+                        text = t.text;
+                        b = 2;
+                    }
+                }
+            }
+        }
+
         text = text
         .replaceAll(/&/g, '&amp;')
         .replaceAll(/</g, '&lt;')
         .replaceAll(/>/g, '&gt;');
 
         text = hilightContents (text);
+
+        if (options.hilightMatchingBrackets) {
+            if (t.found) {
+                if (b === 0) {
+                    text = hilightBraces (text, "(", ")");
+                }
+                else if (b === 1) {
+                    text = hilightBraces (text, "[", "]");
+                }
+                else if (b === 2) {
+                    text = hilightBraces (text, "{", "}");
+                }
+            }
+        }
 
         // scroll fix
         text = text
@@ -75,15 +115,86 @@ var edit = function (node, options) {
         handleScroll ();
     }
     
-    function hilightContents (text) {
-        var reg = new RegExp(options.italic, "g");
-        return hilightBold (text).replaceAll (reg, (str) => `<i>${str.replaceAll (/<b>|<\/b>/ig, "")}</i>`);
+    function prepareBraces (text, open, close) {
+        var st = input.selectionStart;
+        var en = input.selectionEnd;
+        var found, i1, i2;
         
+        if (st === en) {
+            if (st === text.length || ("({[".indexOf (text.substr(st, 1)) === -1 && "}])".indexOf (text.substr(st, 1)) === -1))
+                st--;
+              
+            if (text.substr(st, 1) === open) {
+                var i = st, nb = 0;
+                do {
+                    if (text.substr(i, 1) == open)
+                        nb++;
+                    else if (text.substr(i, 1) == close)
+                        nb--;
+                
+                    i++;
+                } while (i < text.length && nb !== 0);
+
+                if (nb === 0) {
+                    found = true;
+                    i1 = st;
+                    i2 = i - 1;
+                }
+                
+            } else if (text.substr(st, 1) === close) {
+                var i = st, nb = 0;
+                do {
+                    if (text.substr(i, 1) == open)
+                        nb--;
+                    else if (text.substr(i, 1) == close)
+                        nb++;
+                  
+                    i--;
+                } while (i > -1 && nb !== 0);
+              
+                if (nb === 0) {
+                    found = true;
+                    i1 = i + 1;
+                    i2 = st;
+                }
+            }
+        }
+        
+
+        if (found) {
+            var p0 = text.substring(0, i1);
+            var p1 = text.substring(i1 + 1, i2);
+            var p2 = text.substring(i2 + 1, text.length)
+            text = p0 + `${open}\0 ` + p1 + ` \0${close}` + p2;
+        }
+        
+        return {text: text, found: found};
+    }
+    
+    function hilightBraces (text, open, close) {
+        return text
+        .replaceAll(`${open}\0 `, `<span style="color: ${options.colorBracketMatch}; background-color: ${options.colorBracketMatchBack};">${open}</span>`)
+        .replaceAll(` \0${close}`, `<span style="color: ${options.colorBracketMatch}; background-color: ${options.colorBracketMatchBack};">${close}</span>`);
+    }
+
+    function hilightContents (text) {
+        if (options.italic !== "") {
+            var reg = new RegExp(options.italic, "g");
+            return hilightBold (text).replaceAll (reg, (str) => `<i>${str.replaceAll (/<b>|<\/b>/ig, "")}</i>`);
+        }
+        else {
+            return hilightBold (text);
+        }
     }
 
     function hilightBold (text) {
-        var reg = new RegExp(options.bold, "g");
-        return text.replaceAll (reg, (str) => `<b>${str}</b>`);
+        if (options.bold !== "") {
+            var reg = new RegExp(options.bold, "g");
+            return text.replaceAll (reg, (str) => `<b>${str}</b>`);
+        }
+        else {
+            return text;
+        }
     }
     
     function handleScroll () {
@@ -111,10 +222,10 @@ var edit = function (node, options) {
             input.value = el.val;
             input.selectionStart = el.selStart;
             input.selectionEnd = el.selStart;
-
-            hilightAll ();
             input.blur();
             input.focus();
+
+            hilightAll ();
         }
     }
     
@@ -125,6 +236,7 @@ var edit = function (node, options) {
 
             input.value = el.val;
             input.selectionStart = el.selEnd + 1;
+            input.selectionEnd = el.selEnd + 1;
             input.blur();
             input.focus();
             input.selectionStart = el.selStart;
@@ -392,11 +504,13 @@ var edit = function (node, options) {
         } 
         else if (e.key.toLowerCase () === "z" && (e.ctrlKey || e.metaKey)) {
             e.preventDefault ()
-            if (e.shiftKey) {
-                redo ();
-            }
-            else {
-                undo ();
+            if (options.enableUndo) {
+                if (e.shiftKey) {
+                    redo ();
+                }
+                else {
+                    undo ();
+                }
             }
         }
     }
@@ -415,6 +529,18 @@ var edit = function (node, options) {
         
     }
     
+    var tohlghtbrc = null;
+    function handleSelectionChange () {
+        const activeElement = document.activeElement
+        if (activeElement && activeElement.id === `input${rndid}`) {
+            if (options.hilightMatchingBrackets) {
+                clearTimeout (tohlghtbrc);
+                tohlghtbrc = setTimeout (hilightAll, 500);
+            }
+        }
+    }
+    
+    document.addEventListener('selectionchange', handleSelectionChange);
     input.addEventListener('input', handleInput);
     input.addEventListener('keydown', handleKeyPress);
     input.addEventListener('scroll', handleScroll);
