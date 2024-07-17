@@ -303,7 +303,7 @@ var edit = function (node, options) {
             }
         }
         
-        if (e.key !== "Shift" && e.key !== "Control" && e.key !== "Meta") {
+        if (options.enableUndo && e.key !== "Shift" && e.key !== "Control" && e.key !== "Meta") {
             var keyType;
             if (
                 e.key === "ArrowUp" ||
